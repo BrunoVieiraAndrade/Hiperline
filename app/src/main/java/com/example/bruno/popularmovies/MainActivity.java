@@ -1,15 +1,20 @@
 package com.example.bruno.popularmovies;
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.ListView;
 
 import com.example.bruno.popularmovies.pojo.ImageItem;
 
@@ -19,6 +24,10 @@ public class MainActivity extends ActionBarActivity {
 
     private GridView gridView;
     private GridViewAdapter gridViewAdapter;
+    private ListView mDrawerList;
+    private ArrayAdapter<String> mAdapter;
+    private ActionBarDrawerToggle mDrawerToggle;
+    private DrawerLayout mDrawerLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,10 +36,16 @@ public class MainActivity extends ActionBarActivity {
 
         getSupportActionBar().setIcon(R.drawable.hiperline_logo);
         getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE);
-
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
+        setTitle("Séries");
 
         gridView = (GridView) findViewById(R.id.gridView);
-        gridViewAdapter = new GridViewAdapter(this, R.layout.grid_item_layout, getData());
+        mDrawerList = (ListView)findViewById(R.id.navList);
+        mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+
+
+        gridViewAdapter = new GridViewAdapter(this, R.layout.grid_item_layout, getData(getTitle().toString()));
         gridView.setAdapter(gridViewAdapter);
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -46,14 +61,71 @@ public class MainActivity extends ActionBarActivity {
             }
         });
 
+        addDrawerItems();
+        setupDrawer();
+        mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                mDrawerLayout.closeDrawers();
+                String drawerSelectedOption = mAdapter.getItem(position);
+                updateActivity(drawerSelectedOption);
+
+            }
+        });
 
     }
 
+    private void updateActivity(String drawerSelectedOption){
+        ArrayList<ImageItem> imageItems = getData(drawerSelectedOption);
+        gridViewAdapter.clear();
+        for (ImageItem item : imageItems) {
+            gridViewAdapter.add(item);
+        }
+    }
 
-    private ArrayList<ImageItem> getData(){
+    private void setupDrawer() {
+
+        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
+                R.string.drawer_open, R.string.drawer_close) {
+
+            /** Called when a drawer has settled in a completely open state. */
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+            }
+
+            /** Called when a drawer has settled in a completely closed state. */
+            public void onDrawerClosed(View view) {
+                super.onDrawerClosed(view);
+                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+            }
+        };
+
+        mDrawerToggle.setDrawerIndicatorEnabled(true);
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
+    }
+
+    private void addDrawerItems() {
+        String[] osArray = { "Séries", "Filmes"};
+        mAdapter = new ArrayAdapter<String>(this, R.layout.drawer_list_text_view_layout, osArray);
+        mDrawerList.setAdapter(mAdapter);
+    }
+
+
+    private ArrayList<ImageItem> getData(String mediaType){
 
         ArrayList<ImageItem> imageItemArrayList = new ArrayList<>();
 
+        if(mediaType.equalsIgnoreCase("Séries")){
+            return getSeries();
+        }else {
+            return  getMovies();
+        }
+
+    }
+
+    private ArrayList<ImageItem> getMovies(){
+        ArrayList<ImageItem> imageItemArrayList = new ArrayList<>();
         imageItemArrayList.add(new ImageItem(new ImageView(this),
                 "Straight Outta Compton", "https://upload.wikimedia.org/wikipedia/en/7/7a/Straight_Outta_Compton_poster.jpg"));
         imageItemArrayList.add(new ImageItem(new ImageView(this),
@@ -75,8 +147,26 @@ public class MainActivity extends ActionBarActivity {
 
 
         return imageItemArrayList;
+    }
 
+    private ArrayList<ImageItem> getSeries(){
+        ArrayList<ImageItem> imageItemArrayList = new ArrayList<>();
+        imageItemArrayList.add(new ImageItem(new ImageView(this),
+                "The Walking Dead", "http://www.gstatic.com/tv/thumb/tvbanners/8282918/p8282918_b_v7_ai.jpg"));
+        return  imageItemArrayList;
+    }
 
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        // Sync the toggle state after onRestoreInstanceState has occurred.
+        mDrawerToggle.syncState();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        mDrawerToggle.onConfigurationChanged(newConfig);
     }
 
     @Override
@@ -98,8 +188,14 @@ public class MainActivity extends ActionBarActivity {
             return true;
         }
 
+        if (mDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+
         return super.onOptionsItemSelected(item);
     }
+
+
 
     /*private class BitmapFromURL extends AsyncTask<String, Void, Bitmap[]> {
 
