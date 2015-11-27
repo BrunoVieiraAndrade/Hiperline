@@ -45,7 +45,7 @@ public class GridViewAdapter extends ArrayAdapter {
             row = inflater.inflate(layoutResourceId, parent, false);
             holder = new ViewHolder();
             holder.imageTitle = (TextView) row.findViewById(R.id.text);
-            ImageView imageView = (ImageView) row.findViewById(R.id.image);
+            ImageView imageView = (ImageView) row.findViewById(R.id.movie_poster_image_view);
             ImageItem item = (ImageItem) data.get(position);
             // Picasso
             Picasso.with(getContext()).load(item.getUrl()).into(imageView);

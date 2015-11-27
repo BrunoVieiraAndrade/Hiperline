@@ -20,6 +20,9 @@ public class ImageItem {
 
     private String url;
 
+    public ImageItem() {
+    }
+
     public ImageItem(ImageView imageView, String title, String url) {
         super();
         this.image = imageView;
